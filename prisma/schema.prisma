@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  userRoles    UserRole[] 
+
+  @@map("users")
+}
+
+
+// Define the Role model
+model Role {
+  id                     Int                    @id @default(autoincrement())
+  roleName               String
+  isSystem               Boolean                @default(false)
+  users                  UserRole[]   
+  roleFeaturePermissions RoleFeaturePermission[]         
+
+  @@map("roles")
+}
+
+
+// Define the UserRole model
+model UserRole {
+  userId  String
+  roleId  Int
+  role    Role      @relation(fields: [roleId], references: [id])
+  users   User     @relation(fields: [userId], references: [id])
+
+  @@id([userId, roleId])
+}
+
+model Feature {
+  id                 Int                 @id @default(autoincrement())
+  featureName        String
+  groupName          String
+  featurePermissions FeaturePermission[]
+
+  @@map("features")
+}
+
+model FeaturePermission {
+  id                     Int                     @id @default(autoincrement())
+  featureId              Int
+  permission             String
+  feature                Feature                 @relation(fields: [featureId], references: [id])
+  roleFeaturePermissions RoleFeaturePermission[]
+
+   @@map("feature_permissions")
+}
+
+model RoleFeaturePermission {
+  id                  Int        @id @default(autoincrement())
+  roleId              Int
+  featurePermissionId Int
+  permission          Boolean
+  role                Role              @relation(fields: [roleId], references: [id])
+  featurePermission   FeaturePermission @relation(fields: [featurePermissionId], references: [id])
+}
+
+
+
+
+
+
+
